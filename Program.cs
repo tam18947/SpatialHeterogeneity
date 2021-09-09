@@ -39,11 +39,10 @@ namespace SpatialHeterogeneity
             {
                 openfilename = "Parameter.csv";
             }
-            if (openfilename != "")
+            if (openfilename == "" || !ReadFile(openfilename))
             {
-                if (!ReadFile(openfilename)) return;
+                return;
             }
-            else return;
 #endif
             // progress
             Console.CursorVisible = false;
