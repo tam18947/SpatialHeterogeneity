@@ -13,47 +13,24 @@ namespace SpatialHeterogeneity
         {
             //Console.WriteLine("Hello World!");
 
-#if false
-            // CellArea から細胞間距離 l_c を計算
-            double lc;
-            if (GetValue("Average cell area (cm^2)", out double val))
-            {
-                lc = Math.Sqrt(2.0 / Math.Sqrt(3.0) * val) * 1E4;
-                Console.WriteLine("Distance between cells l_c = " + lc + " (um)");
-            }
-            else return;
-            Console.WriteLine();
-            
-            // 容器半径から Xsize, Ysize を計算
-            int xSize, ySize;
-            if (GetValue("Radius of culture vessel (mm)", out double radius))
-            {
-                double v = radius * 2 * 1E3 / lc;
-                xSize = (int)(v + 2);
-                ySize = (int)(v / Delta.Cf_y + 2);
-                Console.WriteLine("Xsize = " + xSize + " (-)");
-                Console.WriteLine("Ysize = " + ySize + " (-)");
-            }
-            else return;
-            Console.WriteLine();
+#if true
+            double A_c = 1.4e-6; // Average cell area (cm^2)
+            lc = Math.Sqrt(2.0 / Math.Sqrt(3.0) * A_c) * 1E4; // (um)
 
-            // 播種密度を入力
-            if (!GetValue("Seeding density (cells/cm^2)", out double density)) return;
-            Console.WriteLine();
+            radius = 11 * 1E3; // Radius of culture vessel (um)
+            double v = radius * 2 / lc;
+            xSize = (int)(v + 2);
+            ySize = (int)(v / Delta.Cf_y + 2);
 
-            // 画像保存用
-            if (!GetValue("Image captur interval (mm)", out double interval)) return;
-            Console.WriteLine();
-#elif false
-            double lc = Math.Sqrt(2.0 / Math.Sqrt(3.0) * 1.4e-6) * 1E4;
-            Console.WriteLine("Distance between cells l_c = " + lc + " (um)");
-            double v = 11 * 2 * 1E3 / lc;
-            int xSize = (int)(v + 2);
-            int ySize = (int)(v / Delta.Cf_y + 2);
-            Console.WriteLine("Xsize = " + xSize + " (-)");
-            Console.WriteLine("Ysize = " + ySize + " (-)");
-            double density = 5E3;
-            double interval = 1.9;
+            density = 5e3; // Seeding density (cells/cm^2)
+
+            interval = 1.9 * 1E3; // Image capture interval (um)
+
+            N_col = new int[1] { 1 };
+            m_con = new double[1] { 0.5 };
+            p_con = new double[1] { 0.0 };
+
+            output = @"C:\Users\foo\Desktop";
 #elif true
             string openfilename = "";
             if (args.Length > 0)
@@ -70,6 +47,7 @@ namespace SpatialHeterogeneity
             }
             else return;
 #endif
+
             for (int i = 0; i < N_col.Length; i++)
             {
                 for (int j = 0; j < m_con.Length; j++)
@@ -98,12 +76,12 @@ namespace SpatialHeterogeneity
                 }
             }
         }
+        static double lc; // (um)
         static double radius; // (um)
         static int xSize;
         static int ySize;
-        static double lc;
         static double density;
-        static double interval;
+        static double interval; // (um)
         static int[] N_col;
         static double[] m_con;
         static double[] p_con;
@@ -136,6 +114,7 @@ namespace SpatialHeterogeneity
                     else return false;
                     if (!ReadLine(sr, "X_0", out density)) return false;
                     if (!ReadLine(sr, "L_interval", out interval)) return false;
+                    interval *= 1E3; // (um)
                     sr.ReadLine();
                     if (!ReadLine(sr, "N_colony", out N_col)) return false;
                     if (!ReadLine(sr, "m_con", out m_con)) return false;
@@ -1418,8 +1397,8 @@ namespace SpatialHeterogeneity
             Radius = radius;
         }
         private string OutputDirectory;
-        private double Interval;
-        private double Radius;
+        private double Interval; // (um)
+        private double Radius; // (um)
 
         /// <summary>
         /// 
@@ -1440,10 +1419,10 @@ namespace SpatialHeterogeneity
             {
                 for (int i = -2; i <= 2; i++)
                 {
-                    double _y = j * Interval * 1E3 - len_um / 2; // (um)
+                    double _y = j * Interval - len_um / 2; // (um)
                     int y = (int)Math.Floor(_y / CultureSpace.Size_lc / Delta.Cf_y + y_center); // (-)
                     if (y % 2 == 1) { y++; }
-                    double _x = i * Interval * 1E3 - len_um / 2; // (um)
+                    double _x = i * Interval - len_um / 2; // (um)
                     int x = (int)Math.Floor(_x / CultureSpace.Size_lc + x_center) * 2 + (y % 2 == 1 ? 1 : 0); // (-)
                     position[cnt++] = new Point3D(x, y, 1);
                 }
