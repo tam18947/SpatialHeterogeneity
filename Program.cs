@@ -10,7 +10,7 @@ namespace SpatialHeterogeneity
     {
         static void Main(string[] args)
         {
-#if true
+#if false
             double A_c = 1.4e-6; // Average cell area (cm^2)
             lc = Math.Sqrt(2.0 / Math.Sqrt(3.0) * A_c) * 1E4; // (um)
 
@@ -1201,7 +1201,7 @@ namespace SpatialHeterogeneity
             double x_center = y_center % 2 == 0 ? CultureSpace.Xsize / 2 - 1 : CultureSpace.Xsize / 2 - 0.5;
             int cnt = 0;
             // 25点の位置を計算
-            Point3D[] position = new Point3D[25]; // 左上の座標
+            Point[] position = new Point[25]; // 左上の座標
             for (int j = -2; j <= 2; j++)
             {
                 for (int i = -2; i <= 2; i++)
@@ -1211,7 +1211,7 @@ namespace SpatialHeterogeneity
                     if (y % 2 == 1) { y++; }
                     double _x = i * Interval - len_um / 2; // (um)
                     int x = (int)Math.Floor(_x / CultureSpace.Size_lc + x_center) * 2 + (y % 2 == 1 ? 1 : 0); // (-)
-                    position[cnt++] = new Point3D(x, y, 1);
+                    position[cnt++] = new Point(x, y);
                 }
             }
 
@@ -1248,12 +1248,15 @@ namespace SpatialHeterogeneity
                 int mx = 3;
                 Bitmap img = new(CultureSpace.Xsize * mx, (int)(CultureSpace.Ysize * Delta.Cf_y * mx));
                 Graphics g = Graphics.FromImage(img);
+                // 全体をグレーにする
                 g.FillRectangle(Brushes.Gray, g.VisibleClipBounds);
+                // 容器内を黒で描画
                 float hf = (float)(Radius / CultureSpace.Size_lc * mx);
                 float xf = img.Size.Width / 2.0f - hf;
                 float yf = img.Size.Height / 2.0f - hf;
                 float wf = hf * 2f;
                 g.FillEllipse(Brushes.Black, xf, yf, wf, wf);
+                // 細胞を描画
                 for (int j = 0; j < CultureSpace.Ysize; j++)
                 {
                     for (int i = 0; i < CultureSpace.Xsize; i++)
@@ -1268,6 +1271,7 @@ namespace SpatialHeterogeneity
                         }
                     }
                 }
+                // 赤枠を付ける
                 for (int k = 0; k < 25; k++)
                 {
                     int j = position[k].Y;
