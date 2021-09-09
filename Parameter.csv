@@ -1,9 +1,9 @@
-A_c,1.40E-06,#Average cell area (cm^2),,,,,
-R_vessel,11,#Radius of culture vessel (mm),,,,,
-X_0,5.00E+03,#Seeding density (cells/cm^2),,,,,
-L_interval,1.9,#Image capture interval (mm),,,,,
-,min,max,increment,,,,
-N_colony,1,10,9,# (cells/colony),,,
-m_con,0.5,2,1.5,#Concentration parameter (-),#Uniform seeding = 0.5,# m_con<0.5:Distribution concentrated in the periphery,# m_con>0.5:Distribution concentrated in the center
-p_con,0,1,0.5,#Location from the center of the culture vessel where cells are concentrated (-),"# 0:center, 1:periphery",,
-outputdirectory,C:\Users\foo\Desktop,,,,,,
+A_c,1.40E-06,#Average cell area (cm^2),,
+R_vessel,11,#Radius of culture vessel (mm),,
+X_0,5.00E+03,#Seeding density (cells/cm^2),,
+L_interval,1.9,#Image capture interval (mm),,
+,min,max,increment,
+N_colony,1,10,9,# (cells/colony)
+m_con,0.5,2,1.5,#Concentration parameter (-) #Uniform seeding = 0.5 #m_con<0.5:Distribution concentrated in the periphery #m_con>0.5:Distribution concentrated in the center
+p_con,0,1,0.5,"#Location from the center of the culture vessel where cells are concentrated (-) #0:center, 1:periphery"
+outputdirectory,C:\Users\foo\Desktop,,,
