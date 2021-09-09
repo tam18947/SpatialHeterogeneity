@@ -72,7 +72,7 @@ namespace SpatialHeterogeneity
                         { return; }
                         // 細胞の配置
                         if (!Seeding.Run_Random_CenterBiased_Colony(
-                            out _, density, m_con[j], p_con[k], N_col[i]))
+                            out List<CellData> cells, density, m_con[j], p_con[k], N_col[i]))
                         { return; }
 
                         string folder = "{N_col=" + N_col[i] + "}{m_con=" + m_con[j] + "}{p_con=" + p_con[k] + "}";
