@@ -11,9 +11,7 @@ namespace SpatialHeterogeneity
     {
         static void Main(string[] args)
         {
-            //Console.WriteLine("Hello World!");
-
-#if true
+#if false
             double A_c = 1.4e-6; // Average cell area (cm^2)
             lc = Math.Sqrt(2.0 / Math.Sqrt(3.0) * A_c) * 1E4; // (um)
 
@@ -31,7 +29,7 @@ namespace SpatialHeterogeneity
             p_con = new double[1] { 0.0 };
 
             output = @"C:\Users\foo\Desktop";
-#elif true
+#else
             string openfilename = "";
             if (args.Length > 0)
             {
@@ -47,6 +45,11 @@ namespace SpatialHeterogeneity
             }
             else return;
 #endif
+            // progress
+            Console.CursorVisible = false;
+            char[] bars = { '／', '―', '＼', '｜' };
+            int sum = N_col.Length * m_con.Length * p_con.Length;
+            int cnt = 0;
 
             for (int i = 0; i < N_col.Length; i++)
             {
@@ -54,6 +57,13 @@ namespace SpatialHeterogeneity
                 {
                     for (int k = 0; k < p_con.Length; k++)
                     {
+                        // 回転する棒を表示
+                        Console.Write(bars[cnt++ % 4]);
+                        // 進むパーセンテージを表示
+                        Console.Write("{0, 4:d0}% ({1} / {2})", 100 * cnt / sum, cnt, sum);
+                        // カーソル位置を初期化
+                        Console.SetCursorPosition(0, Console.CursorTop);
+
                         // 準備
                         Common.Preparation();
                         BoundaryConditions.SetParameter(false, false, false);
@@ -75,6 +85,8 @@ namespace SpatialHeterogeneity
                     }
                 }
             }
+
+            Console.CursorVisible = true;
         }
         static double lc; // (um)
         static double radius; // (um)
