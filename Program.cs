@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.IO;
 using System.Text;
 using System.Drawing;
@@ -11,7 +10,7 @@ namespace SpatialHeterogeneity
     {
         static void Main(string[] args)
         {
-#if false
+#if true
             double A_c = 1.4e-6; // Average cell area (cm^2)
             lc = Math.Sqrt(2.0 / Math.Sqrt(3.0) * A_c) * 1E4; // (um)
 
@@ -28,7 +27,8 @@ namespace SpatialHeterogeneity
             m_con = new double[1] { 0.5 };
             p_con = new double[1] { 0.0 };
 
-            output = @"C:\Users\foo\Desktop";
+            //output = @"C:\Users\foo\Desktop";
+            output = AppDomain.CurrentDomain.BaseDirectory;
 #else
             string openfilename = "";
             if (args.Length > 0)
