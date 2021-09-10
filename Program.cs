@@ -63,8 +63,6 @@ namespace SpatialHeterogeneity
                         // カーソル位置を初期化
                         Console.SetCursorPosition(0, Console.CursorTop);
 
-                        // 準備
-                        Common.Preparation();
                         BoundaryConditions.SetParameter(false, false, false);
                         CultureSpace.SetParameter(xSize, ySize, 3, lc, 1);
                         // マップ作成
@@ -180,24 +178,19 @@ namespace SpatialHeterogeneity
                 {
                     int precision = GetPrecision(vinc);
                     double dinc = (double)vinc;
-                    int min, max, inc;
-                    int a = 1;
-                    for (int i = 0; i < precision; i++)
-                    {
-                        vmin *= 10;
-                        vmax *= 10;
-                        dinc *= 10;
-                        a *= 10;
-                    }
-                    min = (int)Math.Round(vmin);
-                    max = (int)Math.Round(vmax);
-                    inc = (int)Math.Round(dinc);
+                    double a = Math.Pow(10, precision);
+                    vmin *= a;
+                    vmax *= a;
+                    dinc *= a;
+                    int min = (int)Math.Round(vmin);
+                    int max = (int)Math.Round(vmax);
+                    int inc = (int)Math.Round(dinc);
                     int cnt = vinc == 0 ? 1 : (max - min) / inc + 1;
                     val = new double[cnt];
-                    val[0] = (double)min / a;
+                    val[0] = min / a;
                     for (int i = 1; i < cnt; i++)
                     {
-                        val[i] = (double)(min + inc * i) / a;
+                        val[i] = (min + inc * i) / a;
                     }
                     return true;
                 }
@@ -287,38 +280,10 @@ namespace SpatialHeterogeneity
     }
     public static class Common
     {
-        public static void Preparation()
-        {
-            Rand = new Random();
-        }
-
-        // 静的自動プロパティ
-        private static Random Rand { get; set; } = new Random(); // 2019.12.19
-        /// <summary>
-        /// 0.0 以上 1.0 未満のランダムな浮動小数点数を返します。
-        /// </summary>
-        /// <returns></returns>
-        public static double Rand_NextDouble() // 2019.12.19
-        {
-            lock (LockObj) { return Rand.NextDouble(); }
-        }
-        /// <summary>
-        /// 指定した最大値より小さい 0 以上のランダムな整数を返します。
-        /// </summary>
-        /// <param name="maxValue"></param>
-        /// <returns></returns>
-        public static int Rand_Next(int maxValue) // 2020.02.26
-        {
-            lock (LockObj) { return Rand.Next(maxValue); }
-        }
-        private static readonly object LockObj = new(); // 2019.12.19
-
-
         public static bool IsDeadCell(CellData c)
         {
             return c == null;
         }
-
 
         public static int[] RandomlySort(List<CellData> cells) // 2020.03.05
         {
@@ -328,30 +293,15 @@ namespace SpatialHeterogeneity
                 if (!IsDeadCell(cells[i]))
                 { arr.Add(cells[i].Index); }
             }
+            Random rand = new();
             for (int i = 0; i < arr.Count; i++)
             {
-                int val = (int)(Rand_NextDouble() * (arr.Count - i)) + i;
+                int val = (int)(rand.NextDouble() * (arr.Count - i)) + i;
                 int tmp = arr[i];
                 arr[i] = arr[val];
                 arr[val] = tmp;
             }
             return arr.ToArray();
-        }
-
-        public static int[] RandomlySort(object[] obj)
-        {
-            int len = obj.Length;
-            int[] arr = new int[len];
-            for (int i = 0; i < len; i++)
-            { arr[i] = i; }
-            for (int i = 0; i < len; i++)
-            {
-                int val = (int)(Rand_NextDouble() * (len - i)) + i;
-                int tmp = arr[i];
-                arr[i] = arr[val];
-                arr[val] = tmp;
-            }
-            return arr;
         }
     }
     public class CellData
@@ -359,24 +309,12 @@ namespace SpatialHeterogeneity
         /// <summary>
         /// CellData の新規作成
         /// </summary>
-        public CellData(sbyte cellT = 0) // 2020.12.03
+        public CellData() // 2020.12.03
         {
             // 細胞インデックス
             Index = -1;
             // 細胞位置
             Location = new Point3D(-1, -1, -1);
-        }
-
-        /// <summary>
-        /// CellData c のディープコピー
-        /// </summary>
-        /// <param name="c">コピー元のCellData</param>
-        public CellData(CellData c)
-        {
-            // 細胞インデックス
-            Index = c.Index;
-            // 細胞位置
-            Location = new Point3D(c.Location);//.X, c.Location.Y, c.Location.Z);
         }
 
         /// <summary>
@@ -387,32 +325,6 @@ namespace SpatialHeterogeneity
         /// 細胞の座標を取得または設定します。
         /// </summary>
         internal Point3D Location { get; set; }
-
-        internal CellData Clone()
-        {
-            return Clone(this);
-        }
-
-        internal static CellData Clone(CellData c)
-        {
-            return c == null ? null : new CellData(c);
-        }
-
-        /// <summary>
-        /// cellsのindexに対応する配列のインデックスを出力する
-        /// </summary>
-        /// <param name="cells"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        internal static CellData Find(List<CellData> cells, int index)
-        {
-            return cells[index];
-        }
-
-        internal static int FindIndex(List<CellData> cells, int index)
-        {
-            return index;
-        }
 
     }
     public class Point3D
@@ -448,28 +360,6 @@ namespace SpatialHeterogeneity
         public static explicit operator Point3D(Delta v)
         {
             return new Point3D(v.DX, v.DY, v.DZ);
-        }
-        public static bool IsSameLocation(Point3D p1, Point3D p2)
-        {
-            if (p1.X == p2.X && p1.Y == p2.Y && p1.Z == p2.Z)
-            { return true; }
-            else
-            { return false; }
-        }
-        public bool IsSameLocation(Point3D p)
-        {
-            if (X == p.X && Y == p.Y && Z == p.Z)
-            { return true; }
-            else
-            { return false; }
-        }
-        public static Point3D GetPointWithCheckBoundaryConditions(int x, int y, int z)
-        {
-            return BoundaryConditions.Check(x, y, z);
-        }
-        public static Point3D GetPointWithCheckBoundaryConditions(Point3D point, Delta delta)
-        {
-            return point + delta;
         }
         public static Point3D operator +(Point3D left, Delta right)
         {
@@ -1018,6 +908,9 @@ namespace SpatialHeterogeneity
             double r = (y2_ < x2 ? y2_ : x2) - 1; // 半径はXとYで小さい方に合わせる
 
             int[] inds = Common.RandomlySort(cells);
+
+            Random rand = new();
+
             //for (int n = 0; n < NumOfColonies; n++)
             for (int ind = 0; ind < cells.Count; ind++)
             //foreach (int ind in inds)
@@ -1025,9 +918,9 @@ namespace SpatialHeterogeneity
                 //int ind = inds[n * ColonyCells];
                 while (true)
                 {
-                    double theta = 2.0 * Math.PI * Common.Rand_NextDouble();// Math.PI / 2.0;//
+                    double theta = 2.0 * Math.PI * rand.NextDouble();// Math.PI / 2.0;//
                     // ConcentrationParameter = 0.5 のとき円内に一様分布
-                    double r1 = Math.Pow(Common.Rand_NextDouble(), ConcentrationParameter);
+                    double r1 = Math.Pow(rand.NextDouble(), ConcentrationParameter);
 
                     double _y = r * r1 * Math.Sin(theta);
                     int y = (int)Math.Round(_y / Delta.Cf_y + y2);
@@ -1087,7 +980,7 @@ namespace SpatialHeterogeneity
                             {
                                 while (cellNum > 0 && Ps.Count > 0 && ind < cells.Count)
                                 {
-                                    int i = (int)(Ps.Count * Common.Rand_NextDouble());
+                                    int i = (int)(Ps.Count * rand.NextDouble());
                                     if (CultureSpace.GetMap(Ps[i]) == -1)
                                     {
                                         for (int j = 7; j < 13; j++)
