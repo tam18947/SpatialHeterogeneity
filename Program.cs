@@ -775,15 +775,15 @@ namespace SpatialHeterogeneity
                         SetMap(i * 2, j, 0, -3);
                         for (int k = 1; k < Zsize - 1; k++)
                         {
-                            SetMap(i * 2, j, k, -1);
+                            SetMap(i * 2, j, k, -1); // empty grid
                         }
                     }
                     else
                     {
-                        SetMap(i * 2, j, 0, -2);
-                        SetMap(i * 2, j, 1, -3);
+                        SetMap(i * 2, j, 0, -3); // substrate
+                        SetMap(i * 2, j, 1, -2); // block
                     }
-                    SetMap(i * 2, j, Zsize - 1, -2);
+                    SetMap(i * 2, j, Zsize - 1, -2); // block
                 }
             }
         }
