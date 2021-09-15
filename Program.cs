@@ -754,7 +754,7 @@ namespace SpatialHeterogeneity
                 }
             }
         }
-        private static void Creation_Circle()
+        private static void Creation_Circle() // 2021.09.15
         {
             Map = new int[Zsize, Ysize, Xsize];
 
@@ -772,7 +772,6 @@ namespace SpatialHeterogeneity
                         : Delta.GetLength(new Delta((int)((i - x2) * 2 + 1), j - y2, 0));
                     if (len <= r)
                     {
-                        SetMap(i * 2, j, 0, -3);
                         for (int k = 1; k < Zsize - 1; k++)
                         {
                             SetMap(i * 2, j, k, -1); // empty grid
@@ -780,9 +779,12 @@ namespace SpatialHeterogeneity
                     }
                     else
                     {
-                        SetMap(i * 2, j, 0, -3); // substrate
-                        SetMap(i * 2, j, 1, -2); // block
+                        for (int k = 1; k < Zsize - 1; k++)
+                        {
+                            SetMap(i * 2, j, k, -2); // block
+                        }
                     }
+                    SetMap(i * 2, j, 0, -3); // substrate
                     SetMap(i * 2, j, Zsize - 1, -2); // block
                 }
             }
