@@ -364,6 +364,8 @@ namespace SpatialHeterogeneity
     {
         public Delta(int dx, int dy, int dz)
         { DX = dx; DY = dy; DZ = dz; }
+        public Delta()
+        { DX = 0; DY = 0; DZ = 0; }
 
         public int DX { get; set; }
         public int DY { get; set; }
@@ -424,7 +426,7 @@ namespace SpatialHeterogeneity
         }
 
     }
-    public class Direction
+    public class Direction : Delta
     {
         /// <summary>
         /// upper layer    middle layer    under layer
