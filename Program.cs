@@ -330,7 +330,6 @@ namespace SpatialHeterogeneity
         /// 細胞の座標を取得または設定します。
         /// </summary>
         internal Point3D Location { get; set; }
-
     }
     public class Point3D
     {
@@ -358,14 +357,11 @@ namespace SpatialHeterogeneity
         {
             return BoundaryConditions.Check(left, right);
         }
-
     }
-    public class Delta
+    public class Delta : Point3D
     {
-        public Delta(int dx, int dy, int dz)
+        public Delta(int dx, int dy, int dz) : base(dx, dy, dz)
         { DX = dx; DY = dy; DZ = dz; }
-        public Delta()
-        { DX = 0; DY = 0; DZ = 0; }
 
         public int DX { get; set; }
         public int DY { get; set; }
@@ -424,9 +420,8 @@ namespace SpatialHeterogeneity
         {
             return Math.Sqrt(GetLength_pow2(d));
         }
-
     }
-    public class Direction : Delta
+    public class Direction
     {
         /// <summary>
         /// upper layer    middle layer    under layer
@@ -892,7 +887,6 @@ namespace SpatialHeterogeneity
             }
         }
         #endregion
-
     }
     public static class Output
     {
