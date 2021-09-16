@@ -1053,7 +1053,7 @@ namespace SpatialHeterogeneity
                     g.DrawRectangle(Pens.Red, x, y, width * mx, (float)(height * mx * Delta.Cf_y));
                 }
                 g.Dispose();
-                img.Save(Path.Combine(OutputDirectory, "image.bmp"));
+                img.Save(Path.Combine(OutputDirectory, "vessel.bmp"));
             }
 
         }
