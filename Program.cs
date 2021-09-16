@@ -89,7 +89,7 @@ namespace SpatialHeterogeneity
         static double radius; // (um)
         static int xSize;
         static int ySize;
-        static double density;
+        static double density; // (cells/cm^2)
         static double interval; // (um)
         static int[] N_col;
         static double[] m_con;
@@ -130,7 +130,12 @@ namespace SpatialHeterogeneity
                     if (!ReadLine(sr, "p_con", out p_con)) return false;
                     string[] s = sr.ReadLine().Split(',');
                     if (s[0] == "outputdirectory") output = s[1];
-                    else output = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                    else output = AppDomain.CurrentDomain.BaseDirectory;
+                    if (!Directory.Exists(output))
+                    {
+                        Console.WriteLine("OutputDirectory: " + AppDomain.CurrentDomain.BaseDirectory);
+                        output = AppDomain.CurrentDomain.BaseDirectory;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -332,10 +337,6 @@ namespace SpatialHeterogeneity
         /// <summary>
         /// 新しいインスタンスを初期化、 CellData.Point 座標を指定しています。
         /// </summary>
-        public Point3D(Point3D p) { X = p.X; Y = p.Y; Z = p.Z; }
-        /// <summary>
-        /// 新しいインスタンスを初期化、 CellData.Point 座標を指定しています。
-        /// </summary>
         /// <param name="x">ポイントの横方向の位置。</param>
         /// <param name="y">ポイントの縦方向の位置。</param>
         /// <param name="z">ポイントの高さ方向の位置。</param>
@@ -353,21 +354,9 @@ namespace SpatialHeterogeneity
         /// </summary>
         public int Z { get; set; }
 
-        /// <summary>
-        /// DeltaからCellData.Pointにキャストします。
-        /// </summary>
-        /// <param name="v"></param>
-        public static explicit operator Point3D(Delta v)
-        {
-            return new Point3D(v.DX, v.DY, v.DZ);
-        }
         public static Point3D operator +(Point3D left, Delta right)
         {
             return BoundaryConditions.Check(left, right);
-        }
-        public static Point3D operator +(Delta left, Point3D right)
-        {
-            return BoundaryConditions.Check(right, left);
         }
 
     }
@@ -375,8 +364,6 @@ namespace SpatialHeterogeneity
     {
         public Delta(int dx, int dy, int dz)
         { DX = dx; DY = dy; DZ = dz; }
-        public Delta()
-        { DX = 0; DY = 0; DZ = 0; }
 
         public int DX { get; set; }
         public int DY { get; set; }
@@ -384,18 +371,7 @@ namespace SpatialHeterogeneity
         /// <summary>
         /// 六角格子座標から実座標へのy軸の補正係数Correction factor: sqrt(3)/2
         /// </summary>
-        public static double Cf_y { get; } = Math.Sqrt(3) / 2.0;
-
-        public static Delta Copy(Delta src)
-        {
-            return new Delta(src.DX, src.DY, src.DZ);
-        }
-        public static void Copy(Delta src, Delta dsc)
-        {
-            dsc.DX = src.DX;
-            dsc.DY = src.DY;
-            dsc.DZ = src.DZ;
-        }
+        public static readonly double Cf_y = Math.Sqrt(3) / 2.0;
 
         public static Delta GetDelta(Direction.DIR dir)
         {
@@ -429,10 +405,6 @@ namespace SpatialHeterogeneity
         {
             return GetDelta((Direction.DIR)i);
         }
-        public static Delta GetDelta(Point3D from, Point3D to) // 2021.08.04
-        {
-            return new Delta(to.X - from.X, to.Y - from.Y, to.Z - from.Z);
-        }
 
         /// <summary>
         /// dだけ離れた2点間の距離の2乗を計算する。単位は無次元（µm^2でない）。
@@ -450,72 +422,6 @@ namespace SpatialHeterogeneity
         {
             return Math.Sqrt(GetLength_pow2(d));
         }
-        /// <summary>
-        /// 原点からの線分と点との最短距離の2乗
-        /// </summary>
-        /// <param name="distance"></param>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        public static double DistanceFromPointToLine(Delta distance, Delta point)
-        {
-            double xx = distance.DX * distance.DX / 4.0;
-            double yy = distance.DY * distance.DY * Cf_y * Cf_y;
-#if false
-            double r2 = xx + yy;
-            double len2; // 任意の点と任意の線分との最短距離の2乗
-            double tt = distance.DX * point.DX / 4.0 + distance.DY * point.DY * Cf_y * Cf_y;
-            if (tt < 0)
-            { len2 = GetLength_pow2(point); }
-            else if (tt > r2)
-            { len2 = GetLength_pow2(distance - point); }
-            else
-            {
-                double f1 = ((distance.DY * point.DX) - (distance.DX * point.DY)) / 2.0 * Cf_y;
-                len2 = f1 * f1 / r2;
-            }
-            return len2;
-#elif false
-            double r2 = xx + yy;
-            double f1 = ((distance.DY * point.DX) - (distance.DX * point.DY)) / 2.0 * Cf_y;
-            return r2 == 0 ? 0 : f1 * f1 / r2;
-#else
-            double zz = distance.DZ * distance.DZ;
-            double dxpy = distance.DX * point.DY / 2.0 * Cf_y;
-            double dxpz = distance.DX * point.DZ / 2.0;
-            double dypx = distance.DY * point.DX / 2.0 * Cf_y;
-            double dypz = distance.DY * point.DZ * Cf_y;
-            double dzpx = distance.DZ * point.DX / 2.0;
-            double dzpy = distance.DZ * point.DY * Cf_y;
-            double xy = dxpy - dypx;
-            double yz = dypz - dzpy;
-            double zx = dzpx - dxpz;
-            double d = xy * xy + yz * yz + zx * zx;
-            return d / (xx + yy + zz);
-#endif
-        }
-
-#region operator
-        public static Delta operator -(Delta left, Delta right)
-        {
-            return new Delta(left.DX - right.DX, left.DY - right.DY, left.DZ - right.DZ);
-        }
-        public static Delta operator +(Delta left, Delta right)
-        {
-            return new Delta(left.DX + right.DX, left.DY + right.DY, left.DZ + right.DZ);
-        }
-        public static Delta operator -(Delta d)
-        {
-            return new Delta(-d.DX, -d.DY, -d.DZ);
-        }
-        /// <summary>
-        /// Point3D から Delta にキャストします。
-        /// </summary>
-        /// <param name="p">Location</param>
-        public static explicit operator Delta(Point3D p)
-        {
-            return new Delta(p.X, p.Y, p.Z);
-        }
-#endregion
 
     }
     public class Direction
@@ -672,21 +578,14 @@ namespace SpatialHeterogeneity
         }
 
         // 静的メンバー変数
-        //private static string _mapType;
         private static TYPE _type;
         private static int[,,] Map;
 
         // 静的プロパティ
         internal static double Size_lc { get; private set; }
-        //internal static double Size_hc { get; private set; }
         internal static int Xsize { get; private set; }
         internal static int Ysize { get; private set; }
         internal static int Zsize { get; private set; }
-
-        /// <summary>
-        /// マップが有効かどうかを示します。
-        /// </summary>
-        internal static bool MapEnabled => Map != null;
 
         private enum TYPE
         {
@@ -798,11 +697,6 @@ namespace SpatialHeterogeneity
         {
             return GetMap(point.X, point.Y, point.Z);
         }
-        internal static int GetMap(Point3D point, Delta delta) // 2020.03.04
-        {
-            //return MapGet(point.X + delta.DX, point.Y + delta.DY, point.Z + delta.DZ);
-            return GetMap(point + delta);
-        }
 
         internal static void SetMap(int row, int col, int dep, int value)
         {
@@ -812,30 +706,20 @@ namespace SpatialHeterogeneity
         {
             SetMap(point.X, point.Y, point.Z, value);
         }
-
-        internal static bool IsCorrect(Point3D point, int ind, out int result)
-        {
-            result = GetMap(point);
-            return result == ind;
-        }
-        internal static bool IsCorrect(List<CellData> cells, int id, out int result)
-        {
-            return IsCorrect(cells[id].Location, cells[id].Index, out result);
-        }
     }
     public class Seeding
     {
         private static double X_0; // Inoculum size 接種細胞密度
         private static int ColonyCells; // コロニー内の細胞数
-        private static double ConcentrationParameter; // 2021.08.02
-        private static double CenterPeripheryRatio; // 2021.08.31
+        private static double m_con; // 2021.08.02
+        private static double p_con; // 2021.08.31
 
         // 実処理
         public static bool Run_Random_CenterBiased_Colony(out List<CellData> cells, double X0, int colonyCells = 1)
         {
             X_0 = X0;
-            ConcentrationParameter = 0.5;
-            CenterPeripheryRatio = 0.0;
+            m_con = 0.5;
+            p_con = 0.0;
             ColonyCells = colonyCells;
 
             cells = CellInitialization_Random();
@@ -846,8 +730,8 @@ namespace SpatialHeterogeneity
         public static bool Run_Random_CenterBiased_Colony(out List<CellData> cells, double X0, double concentrationParameter = 0.5, double centerPeripheryRatio = 0.0, int colonyCells = 1)
         {
             X_0 = X0;
-            ConcentrationParameter = concentrationParameter;
-            CenterPeripheryRatio = centerPeripheryRatio;
+            m_con = concentrationParameter;
+            p_con = centerPeripheryRatio;
             ColonyCells = colonyCells;
 
             cells = CellInitialization_Random();
@@ -865,7 +749,6 @@ namespace SpatialHeterogeneity
             double Ac = CultureSpace.Size_lc * CultureSpace.Size_lc * 1E-8 * Math.Sqrt(3) / 2.0; //unit:cm^2
             int ind = 0;
             int Nseed = (int)(Ac * Nsub * X_0);
-            //int n = (int)(AfterSeeding.Get_alpha(j) * Nseed);
             for (int i = 0; i < Nseed; i++)
             {
                 CellData c = new CellData
@@ -876,15 +759,13 @@ namespace SpatialHeterogeneity
             }
             if (Nsub < cells.Count)
             {
-                //CellData.CellCount = 0;
                 return null;
             }
-            //CellData.CellCount = cells.Count;
             return cells;
         }
         private static int GetNsub()
         {
-            int Nsub = 0;// (CultureSpace.Xsize - 2) * (CultureSpace.Ysize - 2);
+            int Nsub = 0;
             for (int j = 0; j < CultureSpace.Ysize; j++)
             {
                 for (int i = 0; i < CultureSpace.Xsize; i++)
@@ -913,22 +794,19 @@ namespace SpatialHeterogeneity
 
             Random rand = new();
 
-            //for (int n = 0; n < NumOfColonies; n++)
             for (int ind = 0; ind < cells.Count; ind++)
-            //foreach (int ind in inds)
             {
-                //int ind = inds[n * ColonyCells];
                 while (true)
                 {
                     double theta = 2.0 * Math.PI * rand.NextDouble();// Math.PI / 2.0;//
-                    // ConcentrationParameter = 0.5 のとき円内に一様分布
-                    double r1 = Math.Pow(rand.NextDouble(), ConcentrationParameter);
+                    // m_con = 0.5 のとき円内に一様分布
+                    double r1 = Math.Pow(rand.NextDouble(), m_con);
 
                     double _y = r * r1 * Math.Sin(theta);
                     int y = (int)Math.Round(_y / Delta.Cf_y + y2);
 
                     //double _x = r * (r1 * Math.Cos(theta) + (r1 - 1.0) * q);
-                    double _x = r * (r1 * (Math.Cos(theta) + CenterPeripheryRatio) - CenterPeripheryRatio);
+                    double _x = r * (r1 * (Math.Cos(theta) + p_con) - p_con);
                     int x = (int)Math.Round(_x + x2) * 2 + (y % 2 == 1 ? 1 : 0);
 
                     Point3D p = new Point3D(x, y, 1);
@@ -971,7 +849,6 @@ namespace SpatialHeterogeneity
                                 while (Ps.Count > 0)
                                 {
                                     cellNum--;
-                                    //CellsAdd_SetMap(cells, Ps[0]);
                                     if (cells.Count <= ++ind) break;
                                     cells[inds[ind]].Location = Ps[0];
                                     CultureSpace.SetMap(Ps[0], inds[ind]);
@@ -988,12 +865,10 @@ namespace SpatialHeterogeneity
                                         for (int j = 7; j < 13; j++)
                                         {
                                             Point3D pp = Ps[i] + Delta.GetDelta(j);
-                                            //Point3D p = BoundaryConditions.Check(Ps[i], Delta.GetDelta(j));
                                             // 近傍に細胞が存在する場合には配置する
                                             if (CultureSpace.GetMap(pp) >= 0)
                                             {
                                                 cellNum--;
-                                                //CellsAdd_SetMap(cells, Ps[i]);
                                                 if (cells.Count <= ++ind) break;
                                                 cells[inds[ind]].Location = Ps[i];
                                                 CultureSpace.SetMap(Ps[i], inds[ind]);
@@ -1067,7 +942,7 @@ namespace SpatialHeterogeneity
     }
     public class Capturing
     {
-        public Capturing (string path, double interval, double radius)
+        public Capturing(string path, double interval, double radius)
         {
             if (!Directory.Exists(path))
             {
